@@ -1,0 +1,14 @@
+# Render blueprint: deploy this directory as a free-tier web service.
+# Docs: https://render.com/docs/blueprint-spec
+# After the first deploy Render exposes https://<service-name>.onrender.com
+services:
+  - type: web
+    name: medragent-tools
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ENTREZ_EMAIL
+        sync: false          # set in Render dashboard (your email, optional but polite)
+      - key: ENTREZ_API_KEY
+        sync: false          # optional: raises the NCBI rate limit 3/s -> 10/s

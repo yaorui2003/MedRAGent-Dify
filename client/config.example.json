@@ -1,0 +1,13 @@
+{
+    "api_key": "app-REPLACE-WITH-YOUR-DIFY-API-KEY",
+    "base_url": "https://api.dify.ai/v1",
+    "timeout_minutes": 30,
+    "user": "medragent-demo",
+    "inputs": {
+        "picos": "P: Type 1 Diabetes Mellitus, adolescent; I: fasting during Ramadan; C: ; O: hyperglycemia, hypoglycemia, diabetic ketoacidosis, changes in HbA1c, and weight changes; S: observational studies (e.g., prospective study, cohort studies, case-control studies, cross-sectional studies)",
+        "exclusion": "Animal studies\nCase reports\nSystematic reviews\nmeta analysis",
+        "date_start": "2001/05/01",
+        "date_end": "2024/02/13",
+        "max_results": 20
+    }
+}

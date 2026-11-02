@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# secrets & local config
+.env
+client/config.json
+tool-service/.env
+
+# data artifacts (large, regenerable)
+data-prep/desc2025.xml
+data-prep/desc2025.xml.gz
+data-prep/mesh_kb.txt
+data-prep/mesh_demo.txt
+data-prep/mesh_full.txt
+*.log
+
+# client outputs
+client/report_*.xlsx
+client/report_*.md
+
+# OS
+Thumbs.db
+.DS_Store

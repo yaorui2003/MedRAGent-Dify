@@ -1,0 +1,189 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MedRAGent Tool Service",
+    "description": "PubMed retrieval and MeSH expansion tools for Dify workflows",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://medragent-tools.onrender.com",
+      "description": "Render deployment - replace with your own service URL after deploying tool-service/"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pubmed/search": {
+      "get": {
+        "summary": "Pubmed Search",
+        "description": "Search PubMed with a Boolean query and return parsed articles.\n\nTwo-step E-utilities flow, same as the original MedRAGent pipeline:\nesearch (query -> PMIDs) then efetch (PMIDs -> full records in XML),\nparsed down to the fields the literature-screening LLM needs.",
+        "operationId": "pubmed_search_pubmed_search_get",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "PubMed Boolean query, e.g. ((\"Diabetes Mellitus, Type 1\"[MeSH Terms]) AND (\"Fasting\"[MeSH Terms]))",
+              "title": "Query"
+            },
+            "description": "PubMed Boolean query, e.g. ((\"Diabetes Mellitus, Type 1\"[MeSH Terms]) AND (\"Fasting\"[MeSH Terms]))"
+          },
+          {
+            "name": "max_results",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Max articles to return (1-100)",
+              "default": 20,
+              "title": "Max Results"
+            },
+            "description": "Max articles to return (1-100)"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(relevance|pub_date)$",
+              "description": "Sort order: relevance or pub_date",
+              "default": "relevance",
+              "title": "Sort"
+            },
+            "description": "Sort order: relevance or pub_date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mesh/expand": {
+      "get": {
+        "summary": "Mesh Expand",
+        "description": "Resolve a MeSH descriptor name to its ID and entry terms (synonyms).\n\nBacks the term-expansion step of MedRAGent: the chosen MeSH heading and\nits entry terms are OR-ed together in the Boolean query.",
+        "operationId": "mesh_expand_mesh_expand_get",
+        "parameters": [
+          {
+            "name": "term",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "MeSH descriptor name, e.g. Diabetes Mellitus, Type 1",
+              "title": "Term"
+            },
+            "description": "MeSH descriptor name, e.g. Diabetes Mellitus, Type 1"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
