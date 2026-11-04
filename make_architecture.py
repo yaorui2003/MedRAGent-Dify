@@ -50,7 +50,7 @@ ax.text(16.5, 44.6, "Dify Cloud - Workflow 应用「MedRAGent 文献检索与筛
 
 ax.add_patch(FancyBboxPatch((69.5, 4.5), 24, 9.5, boxstyle="round,pad=0.4",
                             fc="#F0FDF4", ec="#16A34A", lw=1.4, linestyle="--", zorder=1))
-ax.text(70.3, 5.2, "Render 免费托管（公网 HTTPS）", fontsize=8.5, color="#15803D", ha="left")
+ax.text(70.3, 5.2, "可选升级：Render / HF Space 托管", fontsize=8.5, color="#15803D", ha="left")
 
 # ---- workflow nodes: row1 left-to-right, row2 snake (right-to-left) ----
 y1, y2 = 33.5, 22.5
@@ -60,7 +60,7 @@ box(16.5, y1, 12.2, H, "开始\nPICOS / 排除标准\n时间范围 / max_results
 box(31.0, y1, 12.2, H, "MeSH 知识检索\nTopK=8 混合检索\n+ bge-reranker 重排", C_KB, C_KB_E, 8.2)
 box(45.5, y1, 12.2, H, "LLM① PICOS 解析\n名词抽取\nMeSH 主题词映射", C_LLM, C_LLM_E, 8.2)
 box(60.0, y1, 12.2, H, "LLM② Boolean 检索式\n组内OR 组间AND\n[MeSH]/[TiAb] 后缀", C_LLM, C_LLM_E, 8.2)
-box(74.5, y1, 8.9, H, "PubMed\n检索工具\n(自定义API)", C_TOOL, C_TOOL_E, 8.2)
+box(74.5, y1, 8.9, H, "PubMed\nHTTP节点直连\nE-utilities", C_TOOL, C_TOOL_E, 8.2)
 
 box(72.5, y2, 12.2, H, "Code 解析\n文献列表\narray[object]", C_NODE, C_NODE_E, 8.2)
 box(51.5, y2 - 0.3, 17.5, 7.1, "迭代节点 逐篇筛选\nLLM③ 纳入/排除判定\nPICOS+排除标准+理由JSON", C_LLM, C_LLM_E, 8.4)
@@ -94,7 +94,7 @@ conn([(50.15, 14.0), (50.15, 32.2), (37.1, y1 - 0.1)], color=C_KB_E,
      label="知识检索", label_at=(51.0, 20.2))
 
 # ---- tool service + NCBI ----
-box(71.5, 6.5, 21.5, 6.5, "tool-service (FastAPI)\n/pubmed/search  /mesh/expand\n封装 NCBI E-utilities", C_TOOL, C_TOOL_E, 8.0)
+box(71.5, 6.5, 21.5, 6.5, "NCBI E-utilities（公网API）\nesearch / efetch 直连\nHTTP节点 无需部署", C_TOOL, C_TOOL_E, 8.0)
 arrow(83.4, yc1, 89.0, 13.0, color=C_TOOL_E)
 ax.text(88.6, 26.0, "HTTPS", fontsize=8, color=C_TOOL_E)
 arrow(93.2, 10.0, 93.9, 10.0, color=C_EXT_E, dashed=True)
@@ -103,7 +103,7 @@ box(94.0, 7.5, 5.6, 5.4, "NCBI\nPubMed\nNLM MeSH", C_EXT, C_EXT_E, 7.4)
 # title
 ax.text(2, 53.5, "MedRAGent-Dify：医学文献自动检索与筛选系统（Dify 平台化重构）", fontsize=14,
         fontweight="bold", color="#0F172A")
-ax.text(2, 50.6, "原版 FAISS+LangChain 脚本管线 -> Dify 工作流 + 知识库 + 自定义工具 + Service API", fontsize=10, color="#475569")
+ax.text(2, 50.6, "原版 FAISS+LangChain 脚本管线 -> Dify 工作流 + 知识库 + HTTP 直连外部 API + Service API（FastAPI 封装为可选升级）", fontsize=10, color="#475569")
 
 plt.tight_layout()
 plt.savefig("docs/architecture.png", bbox_inches="tight", facecolor="white")

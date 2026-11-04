@@ -1,5 +1,6 @@
 app:
-  description: 医学文献自动检索与筛选系统（MedRAGent 的 Dify 重构版）：PICOS 解析 -> MeSH 知识库映射 -> PubMed Boolean 检索式 -> PubMed 检索 -> 逐篇 LLM 筛选 -> 筛查报告
+  description: 医学文献自动检索与筛选系统（MedRAGent 的 Dify 重构版）：PICOS 解析 -> MeSH 知识库映射 -> PubMed Boolean 检索式 -> PubMed 检索 -> 逐篇 LLM 筛选
+    -> 筛查报告
   icon: 🤖
   icon_background: '#E0F2FE'
   mode: workflow
@@ -13,7 +14,10 @@ workflow:
   features: {}
   graph:
     edges:
-    - data: {isInIteration: false, sourceType: start, targetType: knowledge-retrieval}
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: knowledge-retrieval
       id: edge-start-kb
       source: start
       sourceHandle: source
@@ -21,7 +25,10 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
-    - data: {isInIteration: false, sourceType: knowledge-retrieval, targetType: llm}
+    - data:
+        isInIteration: false
+        sourceType: knowledge-retrieval
+        targetType: llm
       id: edge-kb-llm1
       source: kb-mesh
       sourceHandle: source
@@ -29,7 +36,10 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
-    - data: {isInIteration: false, sourceType: llm, targetType: llm}
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: llm
       id: edge-llm1-llm2
       source: llm-mesh
       sourceHandle: source
@@ -37,31 +47,65 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
-    - data: {isInIteration: false, sourceType: llm, targetType: tool}
-      id: edge-llm2-tool
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: http-request
+      id: edge-llm2-http1
       source: llm-query
       sourceHandle: source
-      target: tool-pubmed
+      target: http-esearch
       targetHandle: target
       type: custom
       zIndex: 0
-    - data: {isInIteration: false, sourceType: tool, targetType: code}
-      id: edge-tool-code1
-      source: tool-pubmed
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: edge-http1-code1
+      source: http-esearch
       sourceHandle: source
-      target: code-parse
+      target: code-esearch
       targetHandle: target
       type: custom
       zIndex: 0
-    - data: {isInIteration: false, sourceType: code, targetType: iteration}
-      id: edge-code1-iter
-      source: code-parse
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: http-request
+      id: edge-code1-http2
+      source: code-esearch
+      sourceHandle: source
+      target: http-efetch
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: edge-http2-code2
+      source: http-efetch
+      sourceHandle: source
+      target: code-medline
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: iteration
+      id: edge-code2-iter
+      source: code-medline
       sourceHandle: source
       target: iter-screen
       targetHandle: target
       type: custom
       zIndex: 0
-    - data: {isInIteration: true, sourceType: iteration-start, targetType: llm}
+    - data:
+        isInIteration: true
+        sourceType: iteration-start
+        targetType: llm
       id: edge-iterstart-llms
       source: iter-screen-start
       sourceHandle: source
@@ -69,7 +113,10 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 1002
-    - data: {isInIteration: false, sourceType: iteration, targetType: code}
+    - data:
+        isInIteration: false
+        sourceType: iteration
+        targetType: code
       id: edge-iter-code2
       source: iter-screen
       sourceHandle: source
@@ -77,7 +124,10 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
-    - data: {isInIteration: false, sourceType: code, targetType: llm}
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: llm
       id: edge-code2-llm3
       source: code-collect
       sourceHandle: source
@@ -85,7 +135,10 @@ workflow:
       targetHandle: target
       type: custom
       zIndex: 0
-    - data: {isInIteration: false, sourceType: llm, targetType: end}
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: end
       id: edge-llm3-end
       source: llm-report
       sourceHandle: source
@@ -131,8 +184,12 @@ workflow:
           variable: max_results
       height: 150
       id: start
-      position: {x: 30, y: 300}
-      positionAbsolute: {x: 30, y: 300}
+      position:
+        x: 30
+        y: 300
+      positionAbsolute:
+        x: 30
+        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -157,8 +214,12 @@ workflow:
       desc: 用 PICOS 全文在 MeSH 主题词知识库中召回候选规范主题词（含 Entry Terms 同义词）
       height: 90
       id: kb-mesh
-      position: {x: 330, y: 300}
-      positionAbsolute: {x: 330, y: 300}
+      position:
+        x: 330
+        y: 300
+      positionAbsolute:
+        x: 330
+        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -179,23 +240,12 @@ workflow:
         prompt_template:
         - id: sys-mesh
           role: system
-          text: |-
-            你是医学文献检索专家（MeSH 标引方向）。基于下面提供的 MeSH 主题词库摘录完成两项任务：
-
-            1. 名词抽取：从用户给出的 PICOS 标准中抽取全部关键名词短语（重点 P 与 I，必要时含 C/O/S）。
-               - 保持复合名词完整，例如 "randomised clinical trials"、"before surgery" 不要拆开；
-               - 不要拆分由连接词连接的短语；
-               - 医学缩写请展开（RCT -> Randomized Controlled Trial）。
-
-            2. MeSH 映射：为每个名词从摘录中找出最匹配的 MeSH 规范主题词（即摘录中 "### Term:" 后的名称）。
-               - 只允许使用摘录中出现的主题词；摘录中没有合适匹配时置为 null；
-               - 如果摘录中该主题词带有 Entry Terms（同义词），原样记住，供下一步组装检索式使用。
-
-            只输出严格 JSON（不要任何其他文字、不要 markdown 代码块）：
-            {"nouns": [{"noun": "...", "section": "P", "mesh_term": "..." 或 null, "entry_terms": ["..."]}]}
-
-            MeSH 主题词库摘录：
-            {{#context#}}
+          text: "你是医学文献检索专家（MeSH 标引方向）。基于下面提供的 MeSH 主题词库摘录完成两项任务：\n\n1. 名词抽取：从用户给出的 PICOS 标准中抽取全部关键名词短语（重点 P 与 I，必要时含 C/O/S）。\n\
+            \   - 保持复合名词完整，例如 \"randomised clinical trials\"、\"before surgery\" 不要拆开；\n   - 不要拆分由连接词连接的短语；\n   - 医学缩写请展开（RCT\
+            \ -> Randomized Controlled Trial）。\n\n2. MeSH 映射：为每个名词从摘录中找出最匹配的 MeSH 规范主题词（即摘录中 \"### Term:\" 后的名称）。\n   - 只允许使用摘录中出现的主题词；摘录中没有合适匹配时置为\
+            \ null；\n   - 如果摘录中该主题词带有 Entry Terms（同义词），原样记住，供下一步组装检索式使用。\n\n只输出严格 JSON（不要任何其他文字、不要 markdown 代码块）：\n{\"nouns\"\
+            : [{\"noun\": \"...\", \"section\": \"P\", \"mesh_term\": \"...\" 或 null, \"entry_terms\": [\"...\"]}]}\n\nMeSH\
+            \ 主题词库摘录：\n{{#context#}}"
         - id: user-mesh
           role: user
           text: '{{#start.picos#}}'
@@ -208,8 +258,12 @@ workflow:
       desc: 移植原项目 extract_nouns + FAISS MeSH 检索 + NLM 同义词扩展 -> Dify 知识检索 + LLM
       height: 90
       id: llm-mesh
-      position: {x: 630, y: 300}
-      positionAbsolute: {x: 630, y: 300}
+      position:
+        x: 630
+        y: 300
+      positionAbsolute:
+        x: 630
+        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -228,26 +282,12 @@ workflow:
         prompt_template:
         - id: sys-query
           role: system
-          text: |-
-            你是 PubMed 检索式构建专家。根据输入的名词与 MeSH 映射结果，组装一条 PubMed 检索式。
-
-            组装规则（严格遵循）：
-            1. 每个名词形成一个"概念组"。组内用 OR 连接，概念组之间用 AND 连接。
-            2. 概念组的成员：
-               - 名词本身，加字段限定 [Title/Abstract]；
-               - 若 mesh_term 非 null：该 MeSH 主题词加字段限定 [MeSH Terms]；
-               - 若 entry_terms 非空：每个同义词也加 [MeSH Terms] 并入该组（OR 连接）。
-               - 短语一律用双引号包裹，例如 "Diabetes Mellitus, Type 1"[MeSH Terms]。
-            3. 每个概念组用圆括号包裹；同一 PICOS 分节（P 或 I）的多个概念组再用一层圆括号包裹成"分节组"。
-            4. 若提供了起始/截止日期，在检索式末尾追加：
-               AND ("起始日期"[Date - Publication] : "截止日期"[Date - Publication])
-               日期格式保持输入原样（如 2001/05/01）。
-            5. 最终只输出检索式字符串本身：不要解释、不要 markdown 代码块、不要换行。
-
-            输入的名词与 MeSH 映射 JSON：
-            {{#llm-mesh.text#}}
-
-            检索时间范围：{{#start.date_start#}} 至 {{#start.date_end#}}（可能为空）
+          text: "你是 PubMed 检索式构建专家。根据输入的名词与 MeSH 映射结果，组装一条 PubMed 检索式。\n\n组装规则（严格遵循）：\n1. 每个名词形成一个\"概念组\"。组内用 OR 连接，概念组之间用\
+            \ AND 连接。\n2. 概念组的成员：\n   - 名词本身，加字段限定 [Title/Abstract]；\n   - 若 mesh_term 非 null：该 MeSH 主题词加字段限定 [MeSH Terms]；\n\
+            \   - 若 entry_terms 非空：每个同义词也加 [MeSH Terms] 并入该组（OR 连接）。\n   - 短语一律用双引号包裹，例如 \"Diabetes Mellitus, Type 1\"[MeSH\
+            \ Terms]。\n3. 每个概念组用圆括号包裹；同一 PICOS 分节（P 或 I）的多个概念组再用一层圆括号包裹成\"分节组\"。\n4. 若提供了起始/截止日期，在检索式末尾追加：\n   AND (\"起始日期\"\
+            [Date - Publication] : \"截止日期\"[Date - Publication])\n   日期格式保持输入原样（如 2001/05/01）。\n5. 最终只输出检索式字符串本身：不要解释、不要 markdown\
+            \ 代码块、不要换行。\n\n输入的名词与 MeSH 映射 JSON：\n{{#llm-mesh.text#}}\n\n检索时间范围：{{#start.date_start#}} 至 {{#start.date_end#}}（可能为空）"
         - id: user-query
           role: user
           text: 请输出最终 PubMed 检索式。
@@ -260,48 +300,165 @@ workflow:
       desc: 移植原项目 query_generator.generate_search_query 的组内 OR / 组间 AND / 后缀规则 / 时间条件
       height: 90
       id: llm-query
-      position: {x: 930, y: 300}
-      positionAbsolute: {x: 930, y: 300}
+      position:
+        x: 930
+        y: 300
+      positionAbsolute:
+        x: 930
+        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 244
     - data:
-        is_team_authorization: false
-        provider_id: REPLACE_WITH_YOUR_TOOL_PROVIDER_ID
-        provider_name: medragent_tools
-        provider_type: api
-        selected: false
-        title: PubMed 检索
-        tool_configurations:
-          max_results: '{{#start.max_results#}}'
-          query: '{{#llm-query.text#}}'
-          sort: relevance
-        tool_label: pubmed_search
-        tool_name: pubmed_search
-        type: tool
-      desc: 自定义 API 工具：FastAPI 服务封装 NCBI E-utilities（esearch+efetch），部署于 Render
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        headers: 'User-Agent: medragent-dify/1.0'
+        method: get
+        params: 'db: pubmed
+
+          term: ''{{#llm-query.text#}}''
+
+          retmode: json
+
+          retmax: ''{{#start.max_results#}}''
+
+          sort: relevance'
+        retry_config:
+          max_retries: 3
+          retry_interval: 1000
+        ssl_verify: true
+        timeout:
+          connect: 10
+          max_connect_timeout: 60
+          max_read_timeout: 60
+          max_write_timeout: 60
+          read: 60
+          write: 60
+        title: PubMed esearch
+        type: http-request
+        url: https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi
+      desc: 直连 NCBI E-utilities：Boolean 检索式 -> 总数 + PMID 列表（JSON）
       height: 90
-      id: tool-pubmed
-      position: {x: 1230, y: 300}
-      positionAbsolute: {x: 1230, y: 300}
+      id: http-esearch
+      position:
+        x: 1230
+        y: 300
+      positionAbsolute:
+        x: 1230
+        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
       type: custom
       width: 244
     - data:
-        code: "import json\n\ndef main(raw: str) -> dict:\n    \"\"\"Parse the
-          tool's JSON response into an article list for the iteration node.\"\"\"\n
-          \   try:\n        payload = json.loads(raw)\n    except Exception:\n        return
-          {\"articles\": [], \"total\": 0}\n\n    articles = []\n    for art in
-          payload.get(\"articles\", []):\n        articles.append({\n            \"pmid\":
-          str(art.get(\"pmid\", \"\")),\n            \"title\": art.get(\"title\",
-          \"no title\"),\n            \"abstract\": art.get(\"abstract\", \"no abstract\"),\n
-          \           \"journal\": art.get(\"journal\", \"\"),\n            \"pub_year\":
-          art.get(\"pub_year\", \"\"),\n        })\n    return {\"articles\": articles,
-          \"total\": int(payload.get(\"total\", len(articles)))}"
+        code: "import json\n\ndef main(raw: str, max_results) -> dict:\n    \"\"\"Parse esearch JSON: total count + PMID list\
+          \ (deduplicated, capped).\"\"\"\n    try:\n        data = json.loads(raw)\n    except Exception:\n        return\
+          \ {\"total\": 0, \"ids\": \"\", \"fetched\": 0}\n    result = data.get(\"esearchresult\", {})\n    total = int(result.get(\"\
+          count\", 0))\n    pmids = list(dict.fromkeys(result.get(\"idlist\", [])))\n    try:\n        cap = int(max_results)\
+          \ if max_results else 20\n    except Exception:\n        cap = 20\n    pmids = pmids[:cap]\n    return {\"total\"\
+          : total, \"ids\": \",\".join(pmids), \"fetched\": len(pmids)}"
+        code_language: python3
+        outputs:
+          fetched:
+            children: null
+            type: number
+          ids:
+            children: null
+            type: string
+          total:
+            children: null
+            type: number
+        selected: false
+        title: 解析检索结果
+        type: code
+        variables:
+        - value_selector:
+          - http-esearch
+          - body
+          variable: raw
+        - value_selector:
+          - start
+          - max_results
+          variable: max_results
+      desc: esearch JSON -> 总数 + 逗号分隔 PMID 串（供 efetch 批量拉取）
+      height: 90
+      id: code-esearch
+      position:
+        x: 1530
+        y: 300
+      positionAbsolute:
+        x: 1530
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        headers: 'User-Agent: medragent-dify/1.0'
+        method: get
+        params: 'db: pubmed
+
+          id: ''{{#code-esearch.ids#}}''
+
+          rettype: medline
+
+          retmode: text'
+        retry_config:
+          max_retries: 3
+          retry_interval: 1000
+        ssl_verify: true
+        timeout:
+          connect: 10
+          max_connect_timeout: 60
+          max_read_timeout: 60
+          max_write_timeout: 60
+          read: 60
+          write: 60
+        title: PubMed efetch
+        type: http-request
+        url: https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi
+      desc: 按 PMID 批量取 MEDLINE 纯文本（标题/摘要/期刊/日期），规避沙箱 XML 依赖
+      height: 90
+      id: http-efetch
+      position:
+        x: 1830
+        y: 300
+      positionAbsolute:
+        x: 1830
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "def main(raw: str) -> dict:\n    \"\"\"Parse PubMed MEDLINE tagged text into article dicts.\\n\\n    Tag lines:\
+          \ 4-char tag + '-' + space (e.g. 'PMID- 123', 'TI  - ...');\\n    continuation lines are indented; records start\
+          \ with PMID-.\"\"\"\n    records = []\n    cur = {}\n    last = None\n    for line in raw.splitlines():\n      \
+          \  if len(line) >= 6 and line[4] == '-' and line[5] == ' ' and line[:4].strip():\n            tag = line[:4].strip()\n\
+          \            val = line[6:].strip()\n            if tag == \"PMID\":\n                if cur:\n                \
+          \    records.append(cur)\n                cur = {}\n            if cur is None:\n                cur = {}\n    \
+          \        cur.setdefault(tag, [])\n            cur[tag].append(val)\n            last = tag\n        elif line.strip()\
+          \ and cur and last:\n            cur[last][-1] += \" \" + line.strip()\n    if cur:\n        records.append(cur)\n\
+          \n    articles = []\n    for r in records:\n        abstract = \" \".join(r.get(\"AB\", [])) or \"no abstract\"\n\
+          \        articles.append({\n            \"pmid\": r.get(\"PMID\", [\"\"])[0].strip(),\n            \"title\": r.get(\"\
+          TI\", [\"no title\"])[0],\n            \"abstract\": abstract,\n            \"journal\": r.get(\"JT\", [\"\"])[0],\n\
+          \            \"pub_year\": r.get(\"DP\", [\"\"])[0][:4],\n        })\n    return {\"articles\": articles, \"total\"\
+          : len(records)}"
         code_language: python3
         outputs:
           articles:
@@ -315,14 +472,18 @@ workflow:
         type: code
         variables:
         - value_selector:
-          - tool-pubmed
-          - text
+          - http-efetch
+          - body
           variable: raw
-      desc: 工具返回 JSON 字符串 -> 结构化文献数组，供迭代节点遍历
+      desc: MEDLINE 标签文本 -> 结构化文献数组（纯字符串解析，沙箱安全）
       height: 90
-      id: code-parse
-      position: {x: 1530, y: 300}
-      positionAbsolute: {x: 1530, y: 300}
+      id: code-medline
+      position:
+        x: 2130
+        y: 300
+      positionAbsolute:
+        x: 2130
+        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -339,8 +500,12 @@ workflow:
       desc: 对每篇文献调用 LLM 按 PICOS 纳入/排除标准判定，移植原项目 analyze_articles
       height: 200
       id: iter-screen
-      position: {x: 1830, y: 260}
-      positionAbsolute: {x: 1830, y: 260}
+      position:
+        x: 1830
+        y: 260
+      positionAbsolute:
+        x: 1830
+        y: 260
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -355,8 +520,12 @@ workflow:
       height: 90
       id: iter-screen-start
       parentId: iter-screen
-      position: {x: 40, y: 80}
-      positionAbsolute: {x: 1870, y: 340}
+      position:
+        x: 40
+        y: 80
+      positionAbsolute:
+        x: 1870
+        y: 340
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -377,52 +546,17 @@ workflow:
         prompt_template:
         - id: sys-screen
           role: system
-          text: |-
-            你是一名资深生物统计学家，负责系统综述的文献筛选。按以下规则判定给定文献是否应纳入。
-
-            文献筛选规则说明：
-            1. 纳入标准处理原则：
-               - 全部纳入标准均满足 -> 纳入该文献
-               - 摘要与标题中含明确支持性描述 -> 视为该纳入标准满足
-               - 摘要与标题中含明确否定性描述 -> 视为该纳入标准不满足
-               - 摘要与标题中未找到明确支持/否定描述 -> 视为该纳入标准满足
-            2. 排除标准处理原则：
-               - 满足任一排除标准 -> 排除该文献
-               - 摘要与标题中含明确支持性描述 -> 视为该排除标准满足
-               - 摘要与标题中含明确否定性描述 -> 视为该排除标准不满足
-               - 摘要与标题中未找到明确支持/否定描述 -> 视为该排除标准不满足
-
-            判定标准：
-            纳入标准（PICOS）：
-            {{#start.picos#}}
-
-            排除标准：
-            {{#start.exclusion#}}
-
-            分析步骤：
-            1. 逐条核对纳入标准：在摘要与标题中寻找支持性/否定性描述，按纳入标准处理原则判定；
-            2. 逐条核对排除标准：在摘要与标题中寻找支持性/否定性描述，按排除标准处理原则判定；
-            3. 最终判定：
-               - 全部纳入标准满足且无排除标准满足 -> 纳入 (relevant=true)
-               - 任一纳入标准不满足 -> 排除 (relevant=false)
-               - 任一排除标准满足 -> 排除 (relevant=false)
-
-            只输出严格 JSON（不要任何其他文字、不要 markdown 代码块），用英文填写理由字段：
-            {"relevant": true/false,
-             "reasons": {
-               "population_match": "...（不适用则返回空字符串）",
-               "intervention_match": "...",
-               "comparison_match": "...",
-               "outcome_match": "...",
-               "study_design": "...",
-               "exclusion_reasons": ["Reason 1: ...", "Reason 2: ..."]
-             },
-             "metadata": {"pmid": 文献中的 pmid, "title": 文献中的 title}}
-
-            待判定文献（JSON，含 pmid/title/abstract/journal/pub_year）：
-            {{#iter-screen.item#}}
-
-            注意：若 abstract 为 "no abstract"，直接 relevant=false 且 exclusion_reasons 填 ["no abstract"]。
+          text: "你是一名资深生物统计学家，负责系统综述的文献筛选。按以下规则判定给定文献是否应纳入。\n\n文献筛选规则说明：\n1. 纳入标准处理原则：\n   - 全部纳入标准均满足 -> 纳入该文献\n   - 摘要与标题中含明确支持性描述\
+            \ -> 视为该纳入标准满足\n   - 摘要与标题中含明确否定性描述 -> 视为该纳入标准不满足\n   - 摘要与标题中未找到明确支持/否定描述 -> 视为该纳入标准满足\n2. 排除标准处理原则：\n   - 满足任一排除标准\
+            \ -> 排除该文献\n   - 摘要与标题中含明确支持性描述 -> 视为该排除标准满足\n   - 摘要与标题中含明确否定性描述 -> 视为该排除标准不满足\n   - 摘要与标题中未找到明确支持/否定描述 -> 视为该排除标准不满足\n\
+            \n判定标准：\n纳入标准（PICOS）：\n{{#start.picos#}}\n\n排除标准：\n{{#start.exclusion#}}\n\n分析步骤：\n1. 逐条核对纳入标准：在摘要与标题中寻找支持性/否定性描述，按纳入标准处理原则判定；\n\
+            2. 逐条核对排除标准：在摘要与标题中寻找支持性/否定性描述，按排除标准处理原则判定；\n3. 最终判定：\n   - 全部纳入标准满足且无排除标准满足 -> 纳入 (relevant=true)\n   - 任一纳入标准不满足\
+            \ -> 排除 (relevant=false)\n   - 任一排除标准满足 -> 排除 (relevant=false)\n\n只输出严格 JSON（不要任何其他文字、不要 markdown 代码块），用英文填写理由字段：\n\
+            {\"relevant\": true/false,\n \"reasons\": {\n   \"population_match\": \"...（不适用则返回空字符串）\",\n   \"intervention_match\"\
+            : \"...\",\n   \"comparison_match\": \"...\",\n   \"outcome_match\": \"...\",\n   \"study_design\": \"...\",\n\
+            \   \"exclusion_reasons\": [\"Reason 1: ...\", \"Reason 2: ...\"]\n },\n \"metadata\": {\"pmid\": 文献中的 pmid, \"\
+            title\": 文献中的 title}}\n\n待判定文献（JSON，含 pmid/title/abstract/journal/pub_year）：\n{{#iter-screen.item#}}\n\n注意：若 abstract\
+            \ 为 \"no abstract\"，直接 relevant=false 且 exclusion_reasons 填 [\"no abstract\"]。"
         - id: user-screen
           role: user
           text: 请判定该文献并输出 JSON。
@@ -436,8 +570,12 @@ workflow:
       height: 90
       id: llm-screen
       parentId: iter-screen
-      position: {x: 260, y: 80}
-      positionAbsolute: {x: 2090, y: 340}
+      position:
+        x: 260
+        y: 80
+      positionAbsolute:
+        x: 2090
+        y: 340
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -445,29 +583,23 @@ workflow:
       width: 244
       zIndex: 1002
     - data:
-        code: "import json\n\ndef main(items: list, total: int) -> dict:\n    \"\"\"Collect
-          per-article screening JSON outputs into rows + summary counters.\"\"\"\n    rows
-          = []\n    included = 0\n    analyzed = 0\n    for raw in items:\n        data
-          = None\n        try:\n            data = json.loads(raw)\n        except Exception:\n
-          \           start = raw.find('{')\n            end = raw.rfind('}')\n            if
-          start >= 0 and end > start:\n                try:\n                    data
-          = json.loads(raw[start:end + 1])\n                except Exception:\n                    data
-          = None\n        if not isinstance(data, dict):\n            rows.append({\"relevant\":
-          \"parse_error\", \"pmid\": \"\", \"title\": raw[:80], \"exclusion_reasons\":
-          \"parse_error\"})\n            continue\n\n        relevant = data.get(\"relevant\",
-          False)\n        reasons = data.get(\"reasons\") or {}\n        if not isinstance(reasons,
-          dict):\n            reasons = {}\n        meta = data.get(\"metadata\",
-          {}) or {}\n        if relevant is True:\n            included += 1\n        analyzed
-          += 1\n        rows.append({\n            \"pmid\": str(meta.get(\"pmid\",
-          \"\")),\n            \"title\": meta.get(\"title\", \"\"),\n            \"included\":
-          \"YES\" if relevant is True else \"NO\",\n            \"population\":
-          reasons.get(\"population_match\", \"\"),\n            \"intervention\":
-          reasons.get(\"intervention_match\", \"\"),\n            \"comparison\":
-          reasons.get(\"comparison_match\", \"\"),\n            \"outcome\": reasons.get(\"outcome_match\",
-          \"\"),\n            \"study_design\": reasons.get(\"study_design\", \"\"),\n
-          \           \"exclusion_reasons\": \"; \".join(r for r in reasons.get(\"exclusion_reasons\",
-          []) if r),\n        })\n    return {\"rows\": rows, \"included\": included,
-          \"analyzed\": analyzed, \"total\": total}"
+        code: "import json\n\ndef main(items: list, total: int) -> dict:\n    \"\"\"Collect per-article screening JSON outputs\
+          \ into rows + summary counters.\"\"\"\n    rows = []\n    included = 0\n    analyzed = 0\n    for raw in items:\n\
+          \        data = None\n        try:\n            data = json.loads(raw)\n        except Exception:\n            start\
+          \ = raw.find('{')\n            end = raw.rfind('}')\n            if start >= 0 and end > start:\n              \
+          \  try:\n                    data = json.loads(raw[start:end + 1])\n                except Exception:\n        \
+          \            data = None\n        if not isinstance(data, dict):\n            rows.append({\"relevant\": \"parse_error\"\
+          , \"pmid\": \"\", \"title\": raw[:80], \"exclusion_reasons\": \"parse_error\"})\n            continue\n\n      \
+          \  relevant = data.get(\"relevant\", False)\n        reasons = data.get(\"reasons\") or {}\n        if not isinstance(reasons,\
+          \ dict):\n            reasons = {}\n        meta = data.get(\"metadata\", {}) or {}\n        if relevant is True:\n\
+          \            included += 1\n        analyzed += 1\n        rows.append({\n            \"pmid\": str(meta.get(\"\
+          pmid\", \"\")),\n            \"title\": meta.get(\"title\", \"\"),\n            \"included\": \"YES\" if relevant\
+          \ is True else \"NO\",\n            \"population\": reasons.get(\"population_match\", \"\"),\n            \"intervention\"\
+          : reasons.get(\"intervention_match\", \"\"),\n            \"comparison\": reasons.get(\"comparison_match\", \"\"\
+          ),\n            \"outcome\": reasons.get(\"outcome_match\", \"\"),\n            \"study_design\": reasons.get(\"\
+          study_design\", \"\"),\n            \"exclusion_reasons\": \"; \".join(r for r in reasons.get(\"exclusion_reasons\"\
+          , []) if r),\n        })\n    return {\"rows\": rows, \"included\": included, \"analyzed\": analyzed, \"total\"\
+          : total}"
         code_language: python3
         outputs:
           analyzed:
@@ -491,14 +623,18 @@ workflow:
           - output
           variable: items
         - value_selector:
-          - code-parse
+          - code-esearch
           - total
           variable: total
       desc: 解析迭代输出的 JSON 数组，统计纳入数，生成结构化行（对齐原项目 report.xlsx 列）
       height: 90
       id: code-collect
-      position: {x: 2390, y: 300}
-      positionAbsolute: {x: 2390, y: 300}
+      position:
+        x: 2390
+        y: 300
+      positionAbsolute:
+        x: 2390
+        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -517,27 +653,41 @@ workflow:
         prompt_template:
         - id: sys-report
           role: system
-          text: |-
-            你是系统综述方法学专家。根据给定的筛选汇总数据生成一份中文 Markdown 筛查报告，结构如下：
+          text: '你是系统综述方法学专家。根据给定的筛选汇总数据生成一份中文 Markdown 筛查报告，结构如下：
+
 
             # 文献检索与筛选报告
+
             ## 1. 研究问题与纳入标准（PICOS）
+
             ## 2. 排除标准
+
             ## 3. 检索策略（PubMed Boolean 检索式、时间范围）
+
             ## 4. 筛选结果统计（PubMed 命中总数 / 实际筛选篇数 / 建议纳入数，附简表）
+
             ## 5. 排除原因分布（按 exclusion_reasons 归类计数，附表格）
+
             ## 6. 建议纳入文献清单（pmid + title 列表）
+
             ## 7. 方法学说明（说明本流程由 LLM 辅助筛选、仍需人工复核、以及 no-abstract 文献的处理）
 
+
             数据说明：
-            - PubMed 命中总数：{{#code-parse.total#}}
+
+            - PubMed 命中总数：{{#code-esearch.total#}}
+
             - 汇总统计（analyzed/included/total）：{{#code-collect.analyzed#}} / {{#code-collect.included#}} / {{#code-collect.total#}}
+
             - 生成的检索式：{{#llm-query.text#}}
 
+
             每行筛选结果 JSON 数组：
+
             {{#code-collect.rows#}}
 
-            报告要简洁、数字准确、直接可读。
+
+            报告要简洁、数字准确、直接可读。'
         - id: user-report
           role: user
           text: 请生成筛查报告。
@@ -550,8 +700,12 @@ workflow:
       desc: 汇总统计 + 结构化行 -> Markdown 报告（对齐原项目终端 Final Analysis Report）
       height: 90
       id: llm-report
-      position: {x: 2690, y: 300}
-      positionAbsolute: {x: 2690, y: 300}
+      position:
+        x: 2690
+        y: 300
+      positionAbsolute:
+        x: 2690
+        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
@@ -576,7 +730,7 @@ workflow:
           - analyzed
           variable: analyzed
         - value_selector:
-          - code-parse
+          - code-esearch
           - total
           variable: total
         selected: false
@@ -584,8 +738,12 @@ workflow:
         type: end
       height: 120
       id: end
-      position: {x: 2990, y: 300}
-      positionAbsolute: {x: 2990, y: 300}
+      position:
+        x: 2990
+        y: 300
+      positionAbsolute:
+        x: 2990
+        y: 300
       selected: false
       sourcePosition: right
       targetPosition: left
