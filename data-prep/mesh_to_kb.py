@@ -1,7 +1,7 @@
 """
-MeSH 2025 -> Dify Knowledge Base import file.
+MeSH -> Dify Knowledge Base import file.
 
-Converts NLM's MeSH Descriptors XML (desc2025.xml) into a text corpus that
+Converts NLM's MeSH Descriptors XML (desc2026.gz) into a text corpus that
 imports cleanly into a Dify knowledge base, replacing the FAISS index
 (mesh_index.faiss / supple_index.faiss) of the original MedRAGent with a
 platform-managed knowledge base.
@@ -17,16 +17,18 @@ One chunk per MeSH descriptor:
 Usage
 -----
     # 1) download the raw XML (about 300 MB compressed) - or fetch manually from
-    #    https://nlmpubs.nlm.nih.gov/downloads/mesh2025/xmlmesh/desc2025.xml.gz
+    #    https://nlmpubs.nlm.nih.gov/projects/mesh/MESH_FILES/xmlmesh/
     python mesh_to_kb.py --download
 
     # 2) full conversion (~31k descriptors)
-    python mesh_to_kb.py --xml desc2025.xml --out mesh_full.txt
+    python mesh_to_kb.py --xml desc2026.xml --out mesh_full.txt
 
     # 3) recommended for the demo case: only trees relevant to a screening
     #    domain, keeps the Dify Cloud knowledge base small and retrieval sharp
-    python mesh_to_kb.py --xml desc2025.xml --out mesh_demo.txt \
-        --trees C19 C23 C25 C27 --max-records 20000
+    #    Suggested top-level branches: C=Diseases, E=Techniques/Equipment,
+    #    F=Psychiatry/Psychology, G=Biological Sciences
+    python mesh_to_kb.py --xml desc2026.xml --out mesh_demo.txt \
+        --trees C E F G --max-records 30000
 
 In Dify, import with the custom segment separator ``###`` (see dify/SETUP.md).
 """
@@ -38,21 +40,14 @@ import shutil
 import urllib.request
 import xml.etree.ElementTree as ET
 
-DESC_URL = "https://nlmpubs.nlm.nih.gov/downloads/mesh2025/xmlmesh/desc2025.xml.gz"
-
-# Suggested tree subsets (top-level MeSH branches) for medical literature screening:
-#   C  - Diseases
-#   C19 - Nutritional and Metabolic Diseases (covers Diabetes Mellitus)
-#   E01 - Analytical, Diagnostic and Therapeutic Techniques and Equipment
-#   E02 - Health Care Activities
-#   F03 - Mental Disorders
-DEMO_TREES = ["C", "E", "F", "G", "H", "I"]
+DESC_URL = "https://nlmpubs.nlm.nih.gov/projects/mesh/MESH_FILES/xmlmesh/desc2026.gz"
+DESC_LOCAL_XML = "desc2026.xml"
 
 
 def download(url: str = DESC_URL, dest_dir: str = ".") -> str:
-    """Download and gunzip desc2025.xml.gz -> desc2025.xml."""
-    gz_path = os.path.join(dest_dir, "desc2025.xml.gz")
-    xml_path = os.path.join(dest_dir, "desc2025.xml")
+    """Download and gunzip the MeSH descriptors archive -> desc2026.xml."""
+    gz_path = os.path.join(dest_dir, "desc2026.gz")
+    xml_path = os.path.join(dest_dir, DESC_LOCAL_XML)
 
     if os.path.exists(xml_path):
         print(f"[skip] {xml_path} already exists")
@@ -157,8 +152,8 @@ def convert(xml_path: str, out_path: str, trees=None, max_records: int = 0) -> i
 
 def main():
     parser = argparse.ArgumentParser(description="MeSH XML -> Dify knowledge base corpus")
-    parser.add_argument("--download", action="store_true", help="download desc2025.xml first")
-    parser.add_argument("--xml", default="desc2025.xml", help="path to desc2025.xml")
+    parser.add_argument("--download", action="store_true", help="download the descriptors archive first")
+    parser.add_argument("--xml", default="desc2026.xml", help="path to the descriptors XML")
     parser.add_argument("--out", default="mesh_kb.txt", help="output text corpus")
     parser.add_argument("--trees", nargs="*", default=None,
                         help="keep only descriptors under these tree number prefixes, e.g. C19 C23")
