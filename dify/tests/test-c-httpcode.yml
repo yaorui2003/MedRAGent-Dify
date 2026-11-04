@@ -1,0 +1,140 @@
+app:
+  description: render test C http and code
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: render-test-c
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.1.5
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features: {}
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: http-request
+      id: e1
+      source: start
+      sourceHandle: source
+      target: http-esearch
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: code
+      id: e2
+      source: http-esearch
+      sourceHandle: source
+      target: code-esearch
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: end
+      id: e3
+      source: code-esearch
+      sourceHandle: source
+      target: end
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        title: 开始
+        type: start
+        variables: []
+      height: 90
+      id: start
+      position: {x: 30, y: 300}
+      positionAbsolute: {x: 30, y: 300}
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        headers: |-
+          User-Agent: test
+        method: get
+        params: |-
+          db: pubmed
+          retmode: json
+        retry_config:
+          max_retries: 3
+          retry_interval: 1000
+        ssl_verify: true
+        timeout:
+          connect: 10
+          max_connect_timeout: 60
+          max_read_timeout: 60
+          max_write_timeout: 60
+          read: 60
+          write: 60
+        title: HTTP测试
+        type: http-request
+        url: https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi
+      height: 90
+      id: http-esearch
+      position: {x: 330, y: 300}
+      positionAbsolute: {x: 330, y: 300}
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "def main(raw: str) -> dict:\n    return {'len': len(raw)}"
+        code_language: python3
+        outputs:
+          len:
+            children: null
+            type: number
+        selected: false
+        title: 解析测试
+        type: code
+        variables:
+        - value_selector:
+          - http-esearch
+          - body
+          variable: raw
+      height: 90
+      id: code-esearch
+      position: {x: 630, y: 300}
+      positionAbsolute: {x: 630, y: 300}
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        outputs:
+        - value_selector:
+          - code-esearch
+          - len
+          variable: out
+        title: 结束
+        type: end
+      height: 90
+      id: end
+      position: {x: 930, y: 300}
+      positionAbsolute: {x: 930, y: 300}
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+  hash: ''
