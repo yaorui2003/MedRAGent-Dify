@@ -81,6 +81,7 @@ MedRAGent-Dify/
 - **PICOS**：P=青少年 1 型糖尿病；I=Ramadan 禁食；O=血糖波动/DKA/HbA1c/体重变化；S=观察性研究
 - **排除**：动物实验、个案报告、系统综述、meta 分析
 - 管线自动生成形如 `("Diabetes Mellitus, Type 1"[MeSH Terms] OR "T1DM"[Title/Abstract]) AND ("Fasting"[MeSH Terms] OR "Hunger Strike"[MeSH Terms] ...) AND ("2001/05/01"[Date - Publication] : "2024/02/13"[Date - Publication])` 的检索式并逐篇判定
+- **复现基线**（[docs/baseline](docs/baseline/)）：原版管线本地复跑，检索命中与原作者公开结果 PMID 100% 重合（44/44）；V3→V4.1-Flash 判定一致率 89.2%。Dify 版结果将与其对比验证
 
 ## 📄 许可
 
