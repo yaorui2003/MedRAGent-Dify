@@ -11,7 +11,7 @@
 | 资源 | 用途 | 获取方式 |
 |---|---|---|
 | [Dify Cloud](https://cloud.dify.ai) | 工作流编排平台 | 注册免费 Sandbox 工作区 |
-| [DeepSeek API](https://platform.deepseek.com) | 全部 LLM 节点（deepseek-chat） | 注册充值（演示级用量 < ¥10） |
+| [DeepSeek API](https://platform.deepseek.com) | 全部 LLM 节点（deepseek-flash，即 V4.1-Flash） | 注册充值（演示级用量 < ¥10） |
 | [SiliconFlow](https://siliconflow.cn) | 嵌入 bge-m3 + 重排 bge-reranker-v2-m3 | 注册送免费额度 |
 | [Render](https://render.com) | 托管 PubMed 工具服务（公网 HTTPS） | 用 GitHub 账号登录，免费 Web Service |
 | NCBI Entrez API key（可选） | PubMed 限速 3/s → 10/s | https://www.ncbi.nlm.nih.gov/account/ |
@@ -37,7 +37,7 @@ curl "https://<your-service>.onrender.com/pubmed/search?query=%22Diabetes%20Mell
 1. 右上角 **插件（Plugins）→ Marketplace**：
    - 安装 **DeepSeek** 官方插件 → 设置中填入 DeepSeek API Key；
    - 安装 **SiliconFlow** 插件 → 设置中填入 SiliconFlow API Key。
-2. 确认模型可用：DeepSeek `deepseek-chat`（Chat）；SiliconFlow `Pro/BAAI/bge-m3`（Embedding）、`Pro/BAAI/bge-reranker-v2-m3`（Rerank）。
+2. 确认模型可用：DeepSeek `deepseek-flash`（Chat，即 DeepSeek-V4.1-Flash；如插件模型列表里没有它，先把 DeepSeek 插件升级到最新版本）；SiliconFlow `Pro/BAAI/bge-m3`（Embedding）、`Pro/BAAI/bge-reranker-v2-m3`（Rerank）。
 
 ## 3. 构建知识库
 
@@ -83,7 +83,7 @@ python mesh_to_kb.py --xml desc2025.xml --out mesh_demo.txt --trees C E F G --ma
 
 导入后按提示修复三类引用（Dify 的 DSL 不携带密钥与团队资源，属正常机制）：
 
-1. **模型未配置**：每个 LLM 节点把模型重选为你的 `deepseek-chat`；
+1. **模型未配置**：每个 LLM 节点把模型重选为你的 `deepseek-flash`；
 2. **工具未授权**：PubMed 检索节点重新绑定你刚创建的 `medragent_tools`；
 3. **知识库缺失**：MeSH 知识检索节点重新选择你刚建的知识库。
 
@@ -95,14 +95,14 @@ python mesh_to_kb.py --xml desc2025.xml --out mesh_demo.txt --trees C E F G --ma
 |---|---|---|
 | 开始 | Start | 输入字段：picos（段落）、exclusion（段落）、date_start、date_end、max_results（数字） |
 | MeSH 知识检索 | Knowledge Retrieval | 查询变量 picos；Top K=8；混合检索+重排 |
-| PICOS 解析与 MeSH 映射 | LLM | deepseek-chat，温度 0.1；上下文=知识检索结果，提示词含 `{{#context#}}` |
-| Boolean 检索式组装 | LLM | deepseek-chat，温度 0.1；输入=`{{#llm-mesh.text#}}` |
+| PICOS 解析与 MeSH 映射 | LLM | deepseek-flash，温度 0.1；上下文=知识检索结果，提示词含 `{{#context#}}` |
+| Boolean 检索式组装 | LLM | deepseek-flash，温度 0.1；输入=`{{#llm-mesh.text#}}` |
 | PubMed 检索 | 自定义工具 | query=`{{#llm-query.text#}}`，max_results=`{{#start.max_results#}}` |
 | 解析文献列表 | Code | 输入=`tool-pubmed/text`，输出 `articles: array[object]`、`total: number` |
 | 逐篇筛选（迭代） | Iteration | 输入对象=`code-parse/articles`；输出=`llm-screen/text` |
-| 单篇纳入/排除判定 | LLM（迭代内） | deepseek-chat，温度 0.1；文献=`{{#iter-screen.item#}}` |
+| 单篇纳入/排除判定 | LLM（迭代内） | deepseek-flash，温度 0.1；文献=`{{#iter-screen.item#}}` |
 | 汇总筛选结果 | Code | 输入=`iter-screen/output` 与 `code-parse/total` |
-| 生成筛查报告 | LLM | deepseek-chat，温度 0.3；引用汇总统计与 rows |
+| 生成筛查报告 | LLM | deepseek-flash，温度 0.3；引用汇总统计与 rows |
 | 结束 | End | 输出 report / rows / included / analyzed / total |
 
 ## 6. 运行验证（演示案例）

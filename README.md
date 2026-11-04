@@ -21,8 +21,8 @@
 Dify Cloud Workflow
    开始(PICOS/排除标准/时间范围/max_results)
    → MeSH 知识检索(知识库, 混合检索+重排)
-   → LLM① PICOS解析+MeSH映射 (deepseek-chat)
-   → LLM② Boolean检索式组装 (deepseek-chat)
+   → LLM① PICOS解析+MeSH映射 (deepseek-flash)
+   → LLM② Boolean检索式组装 (deepseek-flash)
    → 自定义工具 PubMed检索 (FastAPI@Render → NCBI E-utilities)
    → Code 解析文献列表
    → 迭代: LLM③ 逐篇纳入/排除判定 (PICOS元素级理由 JSON)
@@ -37,7 +37,7 @@ Dify Cloud Workflow
 | 同义词扩展 | NLM MeSH Lookup API | 知识库 Entry Terms 字段随检索注入 + `/mesh/expand` 工具 |
 | 检索式组装 | Python 字符串拼接（suffix_rules） | LLM② 按显式组装规则生成（规则前置到提示词） |
 | PubMed 检索 | `Bio.Entrez` 进程内调用 | **自定义 API 工具**（FastAPI + Render，OpenAPI 注册） |
-| 逐篇筛选 | Python for 循环 + LangChain 调用 | **Dify 迭代节点** + deepseek-chat |
+| 逐篇筛选 | Python for 循环 + LangChain 调用 | **Dify 迭代节点** + deepseek-flash |
 | 结果解析兜底 | `json_repair` 库 | Code 节点（JSON 截断容错） |
 | 报告输出 | 终端打印 + pandas 导出 xlsx | LLM④ Markdown 报告 + End 节点结构化输出 → 客户端导出 xlsx/md |
 

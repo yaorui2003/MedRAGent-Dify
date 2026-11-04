@@ -174,7 +174,7 @@ workflow:
           completion_params:
             temperature: 0.1
           mode: chat
-          name: deepseek-chat
+          name: deepseek-flash
           provider: deepseek
         prompt_template:
         - id: sys-mesh
@@ -223,7 +223,7 @@ workflow:
           completion_params:
             temperature: 0.1
           mode: chat
-          name: deepseek-chat
+          name: deepseek-flash
           provider: deepseek
         prompt_template:
         - id: sys-query
@@ -372,7 +372,7 @@ workflow:
           completion_params:
             temperature: 0.1
           mode: chat
-          name: deepseek-chat
+          name: deepseek-flash
           provider: deepseek
         prompt_template:
         - id: sys-screen
@@ -512,7 +512,7 @@ workflow:
           completion_params:
             temperature: 0.3
           mode: chat
-          name: deepseek-chat
+          name: deepseek-flash
           provider: deepseek
         prompt_template:
         - id: sys-report
