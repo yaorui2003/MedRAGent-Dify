@@ -65,7 +65,7 @@ python mesh_to_kb.py --xml desc2026.xml --out mesh_demo.txt --trees C18 C19 C20 
 
 HTTP 请求节点（PubMed esearch/efetch）无需任何配置——NCBI E-utilities 是公开 API，无需鉴权。
 
-工作流共 **14 个节点**：开始 → MeSH 知识检索 → LLM① PICOS 解析与 MeSH 映射 → LLM② Boolean 检索式组装 → **Code 清洗检索式** → **HTTP esearch** → **Code 解析检索结果** → **HTTP efetch** → **Code 解析文献列表** → 迭代（LLM③ 单篇纳入/排除判定，4 路并行）→ Code 汇总 → LLM④ 生成筛查报告 → **Code 清洗报告** → 结束。
+工作流共 **15 个业务节点**（另有 1 个迭代起始节点）：开始 → MeSH 知识检索 → LLM① PICOS 解析与 MeSH 映射 → LLM② Boolean 检索式组装 → **Code 清洗检索式** → **HTTP esearch** → **Code 解析检索结果** → **HTTP efetch** → **Code 解析文献列表** → 迭代（LLM③ 单篇纳入/排除判定，4 路并行）→ Code 汇总 → LLM④ 生成筛查报告 → **Code 清洗报告** → 结束。
 
 > **手写 DSL 的两个硬约束**：① 节点 id 只能包含字母、数字、下划线（不要用连字符 `-`）——Dify 的变量模板正则不认连字符，`{{#code-esearch.total#}}` 这类引用会原样留给 LLM，导致 HTTP 节点发出空检索式；② 迭代节点的起始节点 id 必须是 `<迭代节点id>start0`、类型 `custom-iteration-start`，否则后端会再补一个起始节点、画布直接崩溃。
 

@@ -7,7 +7,7 @@
 | 项 | 值 |
 |---|---|
 | 应用 | MedRAGent 文献检索与筛选（Workflow） |
-| Dify 工作流版本 | DSL 0.7.0，14 个业务节点（含 2 个 Code 清洗节点） |
+| Dify 工作流版本 | DSL 0.7.0，15 个业务节点（含 2 个 Code 清洗节点；另有迭代起始节点，共 16 个图节点） |
 | 调用方式 | 已发布 Service API（`POST /v1/workflows/run`，SSE 流式），客户端 `client/run_screening.py` |
 | run_id | `b75f3509-0724-40fd-a60e-b91d08f13d7a` |
 | 案例 | Ramadan 禁食 × 青少年 1 型糖尿病（doi:10.1186/s12902-025-01835-1） |

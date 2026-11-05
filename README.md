@@ -6,7 +6,7 @@
 
 ## ✨ 亮点
 
-- **14 节点 Dify Workflow**：知识检索 → LLM PICOS 解析/MeSH 映射 → LLM 布尔检索式组装 → **Code 清洗检索式（剥离推理标签）** → **HTTP 节点直连 NCBI E-utilities**（esearch/efetch，无需部署服务）→ 代码解析 → **迭代节点逐篇筛选（4 路并行）** → 代码汇总 → 报告生成 → **Code 清洗报告**，全程可视化编排、单画布完成
+- **15 节点 Dify Workflow**：知识检索 → LLM PICOS 解析/MeSH 映射 → LLM 布尔检索式组装 → **Code 清洗检索式（剥离推理标签）** → **HTTP 节点直连 NCBI E-utilities**（esearch/efetch，无需部署服务）→ 代码解析 → **迭代节点逐篇筛选（4 路并行）** → 代码汇总 → 报告生成 → **Code 清洗报告**，全程可视化编排、单画布完成
 - **Dify 原生知识库替代本地 FAISS**：MeSH 2026（desc2026.xml，3 万+ 医学主题词，按糖尿病相关分支 C18/C19/C20/C23/E01/F01 裁剪为 2,977 条）构建知识库，`BAAI/bge-large-en-v1.5` 稠密嵌入 + 混合检索 + `bge-reranker-v2-m3` 重排，替代原项目本地 `mesh_index.faiss` 索引（选型过程见 [SETUP.md §2](dify/SETUP.md#2-构建知识库)：bge-m3 的多向量表示在 Sandbox 50MB 向量配额下超限，故改用稠密模型 + 平台级混合检索）
 - **外部 API 集成（HTTP 直连 + 可选自定义工具）**：工作流内 HTTP 请求节点直连 NCBI E-utilities（esearch JSON 端点 + MEDLINE 纯文本端点，零部署依赖、沙箱安全解析）；另附 FastAPI 工程化封装（限速/重试/指数退避，`tool-service/`，可部署 Render/HF Space 后注册为自定义工具，见 [dify/SETUP.md §7](dify/SETUP.md)）
 - **Prompt Engineering**：4 组结构化提示词（名词抽取与 MeSH 映射 / 检索式组装规则 / PICOS 元素级纳入排除判定 / 报告生成），严格 JSON 输出 + 代码节点兜底解析（见 [dify/prompts.md](dify/prompts.md)）
