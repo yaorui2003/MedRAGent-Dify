@@ -31,7 +31,7 @@
 
 1. **任务编排是刚需**：文献筛选管线是"知识检索 → LLM 解析 → 检索式组装 → 外部 API 检索 → 迭代逐篇判定 → 汇总报告"的十节点流程，需要迭代节点、代码节点、变量传递、分支重试——只有 Dify 的 Workflow 能完整表达（RAGFlow/MaxKB 以"知识库问答"为中心，编排能力弱一档）。
 2. **外部工具集成是刚需**：PubMed 检索必须作为外部 API 工具接入，Dify 原生支持 OpenAPI Schema 注册自定义工具；RAGFlow/MaxKB 无对等的工具生态。
-3. **知识库在本项目里是"辅助角色"**：MeSH 主题词库是小而规整的结构化文本（每条一个 Term+同义词+定义），不存在复杂版式解析需求——RAGFlow 的 DeepDoc 优势用不上；Dify 的混合检索 + bge-m3/bge-reranker 完全够用。
+3. **知识库在本项目里是"辅助角色"**：MeSH 主题词库是小而规整的结构化文本（每条一个 Term+同义词+定义），不存在复杂版式解析需求——RAGFlow 的 DeepDoc 优势用不上；Dify 的混合检索 + bge-large-en/bge-reranker 完全够用。
 4. **交付形态**：需要把整条管线发布为 API 给客户端调用（Service API + SSE 流式），Dify 一键发布。
 
 ## 什么时候应该反过来选另外两个

@@ -6,8 +6,8 @@
 
 ## ✨ 亮点
 
-- **12 节点 Dify Workflow**：知识检索 → LLM PICOS 解析/MeSH 映射 → LLM 布尔检索式组装 → **HTTP 节点直连 NCBI E-utilities**（esearch/efetch，无需部署服务）→ 代码解析 → **迭代节点逐篇筛选** → 代码汇总 → 报告生成，全程可视化编排、单画布完成
-- **Dify 原生知识库替代本地 FAISS**：MeSH 2025（desc2025.xml，3 万+ 医学主题词）构建知识库，bge-m3 嵌入 + 混合检索 + bge-reranker-v2-m3 重排，替代原项目本地 `mesh_index.faiss` 索引
+- **14 节点 Dify Workflow**：知识检索 → LLM PICOS 解析/MeSH 映射 → LLM 布尔检索式组装 → **Code 清洗检索式（剥离推理标签）** → **HTTP 节点直连 NCBI E-utilities**（esearch/efetch，无需部署服务）→ 代码解析 → **迭代节点逐篇筛选（4 路并行）** → 代码汇总 → 报告生成 → **Code 清洗报告**，全程可视化编排、单画布完成
+- **Dify 原生知识库替代本地 FAISS**：MeSH 2026（desc2026.xml，3 万+ 医学主题词，按糖尿病相关分支 C18/C19/C20/C23/E01/F01 裁剪为 2,977 条）构建知识库，`BAAI/bge-large-en-v1.5` 稠密嵌入 + 混合检索 + `bge-reranker-v2-m3` 重排，替代原项目本地 `mesh_index.faiss` 索引（选型过程见 [SETUP.md §2](dify/SETUP.md#2-构建知识库)：bge-m3 的多向量表示在 Sandbox 50MB 向量配额下超限，故改用稠密模型 + 平台级混合检索）
 - **外部 API 集成（HTTP 直连 + 可选自定义工具）**：工作流内 HTTP 请求节点直连 NCBI E-utilities（esearch JSON 端点 + MEDLINE 纯文本端点，零部署依赖、沙箱安全解析）；另附 FastAPI 工程化封装（限速/重试/指数退避，`tool-service/`，可部署 Render/HF Space 后注册为自定义工具，见 [dify/SETUP.md §7](dify/SETUP.md)）
 - **Prompt Engineering**：4 组结构化提示词（名词抽取与 MeSH 映射 / 检索式组装规则 / PICOS 元素级纳入排除判定 / 报告生成），严格 JSON 输出 + 代码节点兜底解析（见 [dify/prompts.md](dify/prompts.md)）
 - **一键复现**：DSL 文件导入 Dify + Render Blueprint 部署工具服务 + MeSH 语料生成脚本，见 [dify/SETUP.md](dify/SETUP.md)
@@ -23,13 +23,15 @@ Dify Cloud Workflow
    → MeSH 知识检索(知识库, 混合检索+重排)
    → LLM① PICOS解析+MeSH映射 (deepseek-flash)
    → LLM② Boolean检索式组装 (deepseek-flash)
+   → Code 清洗检索式 (剥离 `<think>` 推理标签/代码围栏)
    → HTTP esearch (NCBI esearch.fcgi, JSON)
    → Code 解析检索结果(total + PMID串)
    → HTTP efetch (NCBI efetch.fcgi, MEDLINE文本)
    → Code 解析文献列表(articles)
-   → 迭代: LLM③ 逐篇纳入/排除判定 (PICOS元素级理由 JSON)
+   → 迭代(4路并行): LLM③ 逐篇纳入/排除判定 (PICOS元素级理由 JSON)
    → Code 汇总(rows/included/analyzed)
    → LLM④ 生成筛查报告(Markdown)
+   → Code 清洗报告 (剥离 `<think>` 推理标签)
    → 结束(report/rows/included/analyzed/total)
 ```
 
@@ -48,7 +50,7 @@ Dify Cloud Workflow
 ```
 MedRAGent-Dify/
 ├── data-prep/
-│   └── mesh_to_kb.py        # MeSH desc2025.xml → Dify 知识库语料（支持树形分支裁剪）
+│   └── mesh_to_kb.py        # MeSH desc2026.xml → Dify 知识库语料（支持树形分支裁剪）
 ├── tool-service/            # FastAPI 封装（可选升级：部署后注册 Dify 自定义工具）
 │   ├── main.py              # GET /pubmed/search、GET /mesh/expand、GET /health
 │   ├── openapi.json         # Dify 自定义工具注册 Schema
@@ -71,7 +73,7 @@ MedRAGent-Dify/
 ## 🚀 快速开始
 
 1. **配模型**：Dify 插件市场装 DeepSeek + SiliconFlow，填入各自 API Key
-2. **建知识库**：`python data-prep/mesh_to_kb.py --download` → 导入 Dify（自定义分隔符 `###`、bge-m3、混合检索+重排）
+2. **建知识库**：`python data-prep/mesh_to_kb.py --download` → 导入 Dify（自定义分隔符 `###`、`BAAI/bge-large-en-v1.5`、混合检索+bge-reranker-v2-m3 重排）
 3. **导入工作流**：创建应用 → 导入 DSL → `dify/medragent-workflow.yml` → 重绑模型/知识库/迭代输入（无需部署任何服务）
 4. **运行**：画布中用 [SETUP.md §4](dify/SETUP.md#4-运行验证演示案例) 的演示案例（Ramadan 禁食 × 青少年 1 型糖尿病）调试；或发布后 `python client/run_screening.py --config config.json` 端到端出报告
 5. （可选升级）部署 `tool-service/` 到 Render / HF Space → 注册为自定义工具，恢复自定义工具架构
@@ -85,7 +87,8 @@ MedRAGent-Dify/
 - **PICOS**：P=青少年 1 型糖尿病；I=Ramadan 禁食；O=血糖波动/DKA/HbA1c/体重变化；S=观察性研究
 - **排除**：动物实验、个案报告、系统综述、meta 分析
 - 管线自动生成形如 `("Diabetes Mellitus, Type 1"[MeSH Terms] OR "T1DM"[Title/Abstract]) AND ("Fasting"[MeSH Terms] OR "Hunger Strike"[MeSH Terms] ...) AND ("2001/05/01"[Date - Publication] : "2024/02/13"[Date - Publication])` 的检索式并逐篇判定
-- **复现基线**（[docs/baseline](docs/baseline/)）：原版管线本地复跑，检索命中与原作者公开结果 PMID 100% 重合（44/44）；V3→V4.1-Flash 判定一致率 89.2%。Dify 版结果将与其对比验证
+- **复现基线**（[docs/baseline](docs/baseline/)）：原版管线本地复跑，检索命中与原作者公开结果 PMID 100% 重合（44/44）；V3→V4.1-Flash 判定一致率 89.2%
+- **Dify 版实跑**（[docs/dify-run](docs/dify-run/)）：Service API 端到端跑通，PubMed 命中 3,293，逐篇筛选 44 篇、建议纳入 10 篇；与原基线重合的 7 篇文献判定 **7/7 一致**。两版检索式口径不同（Dify 更宽），纳入总数不可直接比较，详见运行记录中的边界说明
 
 ## 📄 许可
 

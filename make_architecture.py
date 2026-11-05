@@ -89,7 +89,7 @@ arrow(25.5, 14.0, 25.5, 18.4)
 ax.text(26.8, 15.6, "workflow / run", fontsize=8, color="#334155")
 
 # ---- knowledge base, routed through the gap column at x=50.15 ----
-box(44.0, 6.0, 21.0, 8.0, "Dify 知识库「MeSH 2025」\ndesc2025.xml -> mesh_kb.txt\nbge-m3 嵌入 + 混合检索 + 重排", C_KB, C_KB_E, 8.0)
+box(44.0, 6.0, 21.0, 8.0, "Dify 知识库「MeSH 2026」\ndesc2026.xml -> 2,977 词条\nbge-large-en-v1.5 + 混合检索 + 重排", C_KB, C_KB_E, 8.0)
 conn([(50.15, 14.0), (50.15, 32.2), (37.1, y1 - 0.1)], color=C_KB_E,
      label="知识检索", label_at=(51.0, 20.2))
 
